@@ -1187,6 +1187,9 @@ function pilihUjian(idUjian, mapel, kelas) {
 // ============================================================
 // START UJIAN
 // ============================================================
+// ============================================================
+// START UJIAN (PARALEL - LEBIH CEPAT)
+// ============================================================
 function startUjian() {
   sudahSubmit = false;
   jawabanSiswa = {};
@@ -1196,61 +1199,97 @@ function startUjian() {
   showPage('pageUjian');
 
   document.getElementById('hdrTitle').textContent = '📝 ' + mapelAktif + ' · ' + kelasAktif;
-  document.getElementById('soalText').textContent = 'Memuat soal...';
+  document.getElementById('soalText').innerHTML =
+    '<div style="text-align:center;padding:30px;">' +
+    '<div style="font-size:32px;margin-bottom:10px;">⏳</div>' +
+    '<div style="font-weight:600;">Memuat soal...</div>' +
+    '<div style="font-size:12px;color:#888;margin-top:6px;">Mohon tunggu sebentar</div>' +
+    '</div>';
   document.getElementById('opsiList').innerHTML = '';
   document.getElementById('soalImageContainer').innerHTML = '';
 
-  callServer('getDurasiUjian', function(result) {
-    if (result && result.success) durasiUjian = result.durasi || 90;
-    loadSoal();
-  }, function() { loadSoal(); }, idUjianAktif);
-}
+  // ✅ PARALEL: getDurasiUjian dan getSoalUjian dipanggil bersamaan
+  var soalData = null;
+  var durasiData = null;
+  var soalDone = false;
+  var durasiDone = false;
 
-function loadSoal() {
-  callServer('getSoalUjian', function(soal) {
-    if (!soal || !soal.length) {
-      document.getElementById('soalText').textContent = '❌ Tidak ada soal.';
+  function cekSemuaSiap() {
+    if (!soalDone || !durasiDone) return;
+
+    // Set durasi
+    if (durasiData && durasiData.success) {
+      durasiUjian = durasiData.durasi || 90;
+    }
+
+    // Set soal
+    if (!soalData || !soalData.length) {
+      document.getElementById('soalText').textContent = '❌ Tidak ada soal untuk ujian ini.';
       return;
     }
 
-    soalList = soal;
-    totalSoal = soal.length;
+    soalList = soalData;
+    totalSoal = soalData.length;
 
-    callServer('cekStatusSiswa', function(result) {
-      if (result && result.success && result.ada) {
-        if (result.status === 'SELESAI') {
-          sudahSubmit = true;
-          showHasil(result.nilai || 0);
-          return;
-        }
-        var draftJawaban = result.jawaban || {};
-        if (Object.keys(draftJawaban).length > 0) {
-          showModalConfirm('🔄 Lanjutkan Ujian?',
-            'Ditemukan jawaban tersimpan sebelumnya (' + Object.keys(draftJawaban).length + ' soal terjawab). Lanjutkan?',
-            function(ok) {
-              if (ok) jawabanSiswa = draftJawaban;
-              else jawabanSiswa = {};
-              mulaiRender();
-            });
-        } else {
-          mulaiRender();
-        }
+    // Lanjut cek status
+    lanjutCekStatus();
+  }
+
+  // Request 1: durasi
+  callServer('getDurasiUjian', function(result) {
+    durasiData = result;
+    durasiDone = true;
+    cekSemuaSiap();
+  }, function() {
+    durasiDone = true;
+    cekSemuaSiap();
+  }, idUjianAktif);
+
+  // Request 2: soal (paralel dengan request 1)
+  callServer('getSoalUjian', function(soal) {
+    soalData = soal;
+    soalDone = true;
+    cekSemuaSiap();
+  }, function(err) {
+    document.getElementById('soalText').textContent = '❌ Gagal memuat soal: ' + err;
+    soalDone = true;
+    cekSemuaSiap();
+  }, idUjianAktif, siswaData.noTes, siswaData.nama);
+}
+
+function lanjutCekStatus() {
+  callServer('cekStatusSiswa', function(result) {
+    if (result && result.success && result.ada) {
+      if (result.status === 'SELESAI') {
+        sudahSubmit = true;
+        showHasil(result.nilai || 0);
+        return;
+      }
+      var draftJawaban = result.jawaban || {};
+      if (Object.keys(draftJawaban).length > 0) {
+        showModalConfirm('🔄 Lanjutkan Ujian?',
+          'Ditemukan jawaban tersimpan sebelumnya (' + Object.keys(draftJawaban).length + ' soal terjawab). Lanjutkan?',
+          function(ok) {
+            if (ok) jawabanSiswa = draftJawaban;
+            else jawabanSiswa = {};
+            mulaiRender();
+          });
       } else {
-        var localData = loadLocal();
-        if (localData && localData.jawaban && Object.keys(localData.jawaban).length > 0) {
-          jawabanSiswa = localData.jawaban;
-          if (localData.currentIndex) currentIndex = localData.currentIndex;
-        }
         mulaiRender();
       }
-    }, function() {
+    } else {
       var localData = loadLocal();
-      if (localData && localData.jawaban) jawabanSiswa = localData.jawaban;
+      if (localData && localData.jawaban && Object.keys(localData.jawaban).length > 0) {
+        jawabanSiswa = localData.jawaban;
+        if (localData.currentIndex) currentIndex = localData.currentIndex;
+      }
       mulaiRender();
-    }, siswaData.noTes, idUjianAktif);
-  }, function(err) {
-    document.getElementById('soalText').textContent = '❌ Gagal memuat: ' + err;
-  }, idUjianAktif, siswaData.noTes, siswaData.nama);
+    }
+  }, function() {
+    var localData = loadLocal();
+    if (localData && localData.jawaban) jawabanSiswa = localData.jawaban;
+    mulaiRender();
+  }, siswaData.noTes, idUjianAktif);
 }
 
 function mulaiRender() {
