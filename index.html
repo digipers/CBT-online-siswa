@@ -19,7 +19,6 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* APP LAYOUT */
     .app {
       display: flex;
       flex-direction: column;
@@ -28,7 +27,6 @@
       width: 100%;
     }
 
-    /* HEADER */
     .header {
       background: #1a237e;
       color: white;
@@ -83,7 +81,6 @@
       text-overflow: ellipsis;
     }
 
-    /* TOMBOL GRID NAVIGATOR */
     .btn-grid {
       background: rgba(255,255,255,0.2);
       color: white;
@@ -113,7 +110,6 @@
       font-weight: 700;
     }
 
-    /* SCROLL AREA */
     .scroll-area {
       flex: 1;
       overflow-y: auto;
@@ -123,7 +119,6 @@
       padding-bottom: 80px;
     }
 
-    /* SOAL */
     .soal-container {
       background: white;
       border-radius: 10px;
@@ -171,7 +166,6 @@
       font-style: italic;
     }
 
-    /* OPSI JAWABAN */
     .opsi-list { display: flex; flex-direction: column; gap: 8px; }
 
     .opsi-item {
@@ -237,7 +231,6 @@
       margin-right: 4px;
     }
 
-    /* FOOTER */
     .footer {
       flex-shrink: 0;
       background: white;
@@ -273,7 +266,6 @@
     .btn-danger { background: #c62828; color: white; }
     .btn-outline { background: white; color: #555; border: 2px solid #ddd; }
 
-    /* PAGE CENTER (LOGIN) */
     .page-center {
       display: flex;
       align-items: center;
@@ -313,7 +305,6 @@
     .login-box input:focus { outline: none; border-color: #3f51b5; background: white; }
     .login-box .btn { width: 100%; padding: 14px; font-size: 16px; margin-top: 6px; }
 
-    /* LIST UJIAN */
     .list-page { padding: 16px; max-width: 600px; margin: 0 auto; overflow-y: auto; height: 100vh; height: 100dvh; }
 
     .list-header {
@@ -365,7 +356,6 @@
     .status-badge.aktif { background: #e8f5e9; color: #2e7d32; }
     .status-badge.terjadwal { background: #fff8e1; color: #f57c00; }
 
-    /* REVIEW */
     .review-page { padding: 20px 16px; max-width: 600px; margin: 0 auto; overflow-y: auto; height: 100vh; height: 100dvh; }
 
     .review-card {
@@ -395,7 +385,6 @@
     .review-stat .num.orange { color: #f57c00; }
     .review-stat .lbl { font-size: 11px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* HASIL */
     .hasil-page {
       padding: 20px 16px;
       max-width: 600px;
@@ -430,7 +419,6 @@
       color: #1a237e;
     }
 
-    /* OVERLAY / MODAL */
     .overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -466,9 +454,6 @@
     .modal-buttons { display: flex; gap: 10px; }
     .modal-buttons .btn { flex: 1; padding: 12px; }
 
-    /* ========================================================== */
-    /* NAVIGATOR MODAL (BARU)                                     */
-    /* ========================================================== */
     .nav-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -592,7 +577,6 @@
 
     .nav-grid .nav-num:active { transform: scale(0.9); }
 
-    /* Status soal */
     .nav-grid .nav-num.kosong {
       background: white;
       border-color: #ddd;
@@ -652,7 +636,6 @@
       .nav-grid .nav-num { font-size: 12px; }
     }
 
-    /* IMAGE FULLSCREEN */
     .image-fs {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -686,7 +669,6 @@
       font-family: inherit;
     }
 
-    /* OFFLINE BANNER */
     .offline-banner {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -717,11 +699,9 @@
       font-family: inherit;
     }
 
-    /* PAGE VISIBILITY */
     .page { display: none; }
     .page.active { display: block; }
 
-    /* RESPONSIVE */
     @media (max-width: 360px) {
       .header-row-1 { font-size: 13px; }
       .header-row-2 { font-size: 11px; }
@@ -735,13 +715,11 @@
 </head>
 <body>
 
-<!-- OFFLINE BANNER -->
 <div class="offline-banner" id="offlineBanner">
   ⚠️ Koneksi terputus
   <button onclick="retryConnection()">🔄 Coba Lagi</button>
 </div>
 
-<!-- PAGE: LOGIN -->
 <div id="pageLogin" class="page active">
   <div class="page-center">
     <div class="login-box">
@@ -757,7 +735,6 @@
   </div>
 </div>
 
-<!-- PAGE: DAFTAR UJIAN -->
 <div id="pageList" class="page">
   <div class="list-page">
     <div class="list-header">
@@ -773,10 +750,8 @@
   </div>
 </div>
 
-<!-- PAGE: UJIAN -->
 <div id="pageUjian" class="page">
   <div class="app">
-    <!-- HEADER -->
     <div class="header">
       <div class="header-row header-row-1">
         <span class="header-title" id="hdrTitle">📝 Ujian</span>
@@ -794,7 +769,6 @@
       </div>
     </div>
 
-    <!-- SCROLL AREA -->
     <div class="scroll-area" id="scrollArea">
       <div class="soal-container">
         <div class="soal-nomor" id="soalNomor">Soal 1</div>
@@ -804,7 +778,6 @@
       </div>
     </div>
 
-    <!-- FOOTER -->
     <div class="footer">
       <div class="footer-nav">
         <button class="btn btn-prev" id="btnPrev" onclick="goPrev()">⬅ Sebelumnya</button>
@@ -814,7 +787,6 @@
   </div>
 </div>
 
-<!-- PAGE: REVIEW -->
 <div id="pageReview" class="page">
   <div class="review-page">
     <div class="review-card">
@@ -845,7 +817,6 @@
   </div>
 </div>
 
-<!-- PAGE: HASIL -->
 <div id="pageHasil" class="page">
   <div class="hasil-page">
     <div class="hasil-card">
@@ -859,7 +830,6 @@
   </div>
 </div>
 
-<!-- MODAL KONFIRMASI -->
 <div class="overlay" id="overlayModal">
   <div class="modal">
     <div class="modal-icon" id="modalIcon">⚠️</div>
@@ -872,7 +842,6 @@
   </div>
 </div>
 
-<!-- NAVIGATOR MODAL -->
 <div class="nav-overlay" id="navOverlay" onclick="navOverlayClick(event)">
   <div class="nav-modal">
     <div class="nav-header">
@@ -913,7 +882,6 @@
   </div>
 </div>
 
-<!-- IMAGE FULLSCREEN -->
 <div class="image-fs" id="imageFs" onclick="closeImageFs()">
   <button class="image-fs-close" onclick="closeImageFs()">×</button>
   <img id="imageFsImg" src="" alt="Soal">
@@ -940,10 +908,10 @@ var currentIndex = 0;
 var totalSoal = 0;
 var timeLeft = 0;
 var timerInterval = null;
+var autoSaveInterval = null;
 var waktuMulai = null;
 var sudahSubmit = false;
 var warningShown = false;
-var draftSaveTimer = null;
 var isOnline = true;
 var navOpen = false;
 
@@ -967,36 +935,48 @@ function getUrlParams() {
   };
 }
 
-
 // ============================================================
-// CALL SERVER (via fetch ke Apps Script)
+// CALL SERVER (dengan RETRY otomatis)
 // ============================================================
 function callServer(funcName, callback, errorCallback) {
   var args = Array.prototype.slice.call(arguments, 3);
+  
+  var maxRetry = 3;
+  var retryDelay = 2000;
+  var attempt = 0;
+  
+  function tryFetch() {
+    attempt++;
+    console.log('[CALL] ' + funcName + ' (attempt ' + attempt + '/' + maxRetry + ')');
 
-  fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8'
-    },
-    body: JSON.stringify({
-      action: funcName,
-      args: args
-    }),
-    redirect: 'follow'
-  })
-  .then(function(response) {
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-    return response.json();
-  })
-  .then(function(result) {
-    if (callback) callback(result);
-  })
-  .catch(function(error) {
-    console.error('[ERROR] ' + funcName, error);
-    if (errorCallback) errorCallback(error.message || error.toString());
-    else showOfflineBanner();
-  });
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: funcName, args: args }),
+      redirect: 'follow'
+    })
+    .then(function(response) {
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return response.json();
+    })
+    .then(function(result) {
+      console.log('[OK] ' + funcName, result);
+      if (callback) callback(result);
+    })
+    .catch(function(error) {
+      console.error('[ERROR] ' + funcName + ' attempt ' + attempt, error);
+      
+      if (attempt < maxRetry) {
+        console.log('Retry in ' + retryDelay + 'ms...');
+        setTimeout(tryFetch, retryDelay);
+      } else {
+        if (errorCallback) errorCallback(error.message || error.toString());
+        else showOfflineBanner();
+      }
+    });
+  }
+  
+  tryFetch();
 }
 
 // ============================================================
@@ -1043,6 +1023,11 @@ function loadLocal() {
 function clearLocal() {
   var key = getStorageKey('jawaban');
   if (key) { try { localStorage.removeItem(key); } catch (e) {} }
+  
+  // Clear cache soal juga
+  if (idUjianAktif) {
+    try { localStorage.removeItem('soal_cache_' + idUjianAktif); } catch (e) {}
+  }
 }
 
 // ============================================================
@@ -1123,6 +1108,7 @@ function doLogout() {
     jawabanSiswa = {};
     currentIndex = 0;
     if (timerInterval) clearInterval(timerInterval);
+    if (autoSaveInterval) clearInterval(autoSaveInterval);
 
     document.getElementById('inputNoTes').value = '';
     document.getElementById('inputNama').value = '';
@@ -1185,10 +1171,7 @@ function pilihUjian(idUjian, mapel, kelas) {
 }
 
 // ============================================================
-// START UJIAN
-// ============================================================
-// ============================================================
-// START UJIAN (PARALEL - LEBIH CEPAT)
+// START UJIAN - OPTIMASI: 1 REQUEST GABUNGAN
 // ============================================================
 function startUjian() {
   sudahSubmit = false;
@@ -1208,88 +1191,105 @@ function startUjian() {
   document.getElementById('opsiList').innerHTML = '';
   document.getElementById('soalImageContainer').innerHTML = '';
 
-  // ✅ PARALEL: getDurasiUjian dan getSoalUjian dipanggil bersamaan
-  var soalData = null;
-  var durasiData = null;
-  var soalDone = false;
-  var durasiDone = false;
+  // ✅ CEK CACHE DULU
+  var cacheKey = 'soal_cache_' + idUjianAktif;
+  var cachedData = null;
 
-  function cekSemuaSiap() {
-    if (!soalDone || !durasiDone) return;
-
-    // Set durasi
-    if (durasiData && durasiData.success) {
-      durasiUjian = durasiData.durasi || 90;
+  try {
+    var cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      cachedData = JSON.parse(cached);
+      if (cachedData.timestamp && (Date.now() - cachedData.timestamp) < 7200000) {
+        console.log('✅ Pakai cache soal');
+        soalList = cachedData.soal;
+        totalSoal = soalList.length;
+        durasiUjian = cachedData.durasi || 90;
+        
+        // Lanjut cek status siswa (ini masih perlu untuk cek resume)
+        callServer('cekStatusSiswa', function(result) {
+          if (result && result.success && result.ada) {
+            if (result.status === 'SELESAI') {
+              sudahSubmit = true;
+              showHasil(result.nilai || 0);
+              return;
+            }
+            var draftJawaban = result.jawaban || {};
+            if (Object.keys(draftJawaban).length > 0) {
+              showModalConfirm('🔄 Lanjutkan Ujian?',
+                'Ditemukan jawaban tersimpan (' + Object.keys(draftJawaban).length + ' soal). Lanjutkan?',
+                function(ok) {
+                  if (ok) jawabanSiswa = draftJawaban;
+                  else jawabanSiswa = {};
+                  mulaiRender();
+                });
+            } else {
+              mulaiRender();
+            }
+          } else {
+            mulaiRender();
+          }
+        }, function() { mulaiRender(); }, siswaData.noTes, idUjianAktif);
+        
+        return;
+      }
     }
+  } catch (e) {
+    console.warn('Cache tidak valid:', e);
+  }
 
-    // Set soal
-    if (!soalData || !soalData.length) {
-      document.getElementById('soalText').textContent = '❌ Tidak ada soal untuk ujian ini.';
+  // ❌ Tidak ada cache → fetch dengan 1 request gabungan
+  console.log('⏳ Fetch data lengkap dari server');
+  
+  callServer('getUjianDataLengkap', function(result) {
+    if (!result || !result.success) {
+      document.getElementById('soalText').textContent = '❌ Gagal: ' + (result ? result.message : 'Unknown');
+      return;
+    }
+    
+    soalList = result.soal || [];
+    totalSoal = soalList.length;
+    durasiUjian = result.durasi || 90;
+    
+    if (!soalList.length) {
+      document.getElementById('soalText').textContent = '❌ Tidak ada soal.';
       return;
     }
 
-    soalList = soalData;
-    totalSoal = soalData.length;
-
-    // Lanjut cek status
-    lanjutCekStatus();
-  }
-
-  // Request 1: durasi
-  callServer('getDurasiUjian', function(result) {
-    durasiData = result;
-    durasiDone = true;
-    cekSemuaSiap();
-  }, function() {
-    durasiDone = true;
-    cekSemuaSiap();
-  }, idUjianAktif);
-
-  // Request 2: soal (paralel dengan request 1)
-  callServer('getSoalUjian', function(soal) {
-    soalData = soal;
-    soalDone = true;
-    cekSemuaSiap();
-  }, function(err) {
-    document.getElementById('soalText').textContent = '❌ Gagal memuat soal: ' + err;
-    soalDone = true;
-    cekSemuaSiap();
-  }, idUjianAktif, siswaData.noTes, siswaData.nama);
-}
-
-function lanjutCekStatus() {
-  callServer('cekStatusSiswa', function(result) {
-    if (result && result.success && result.ada) {
-      if (result.status === 'SELESAI') {
-        sudahSubmit = true;
-        showHasil(result.nilai || 0);
-        return;
-      }
-      var draftJawaban = result.jawaban || {};
-      if (Object.keys(draftJawaban).length > 0) {
-        showModalConfirm('🔄 Lanjutkan Ujian?',
-          'Ditemukan jawaban tersimpan sebelumnya (' + Object.keys(draftJawaban).length + ' soal terjawab). Lanjutkan?',
-          function(ok) {
-            if (ok) jawabanSiswa = draftJawaban;
-            else jawabanSiswa = {};
-            mulaiRender();
-          });
-      } else {
-        mulaiRender();
-      }
+    // ✅ SIMPAN KE CACHE
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({
+        soal: soalList,
+        durasi: durasiUjian,
+        timestamp: Date.now()
+      }));
+      console.log('💾 Soal disimpan ke cache');
+    } catch (e) {
+      console.warn('Gagal simpan cache:', e);
+    }
+    
+    // Kalau sudah selesai
+    if (result.status === 'SELESAI') {
+      sudahSubmit = true;
+      showHasil(result.nilai || 0);
+      return;
+    }
+    
+    // Kalau ada jawaban tersimpan → tanya lanjut
+    var draftJawaban = result.jawabanTersimpan || {};
+    if (Object.keys(draftJawaban).length > 0) {
+      showModalConfirm('🔄 Lanjutkan Ujian?',
+        'Ditemukan jawaban tersimpan (' + Object.keys(draftJawaban).length + ' soal). Lanjutkan?',
+        function(ok) {
+          if (ok) jawabanSiswa = draftJawaban;
+          else jawabanSiswa = {};
+          mulaiRender();
+        });
     } else {
-      var localData = loadLocal();
-      if (localData && localData.jawaban && Object.keys(localData.jawaban).length > 0) {
-        jawabanSiswa = localData.jawaban;
-        if (localData.currentIndex) currentIndex = localData.currentIndex;
-      }
       mulaiRender();
     }
-  }, function() {
-    var localData = loadLocal();
-    if (localData && localData.jawaban) jawabanSiswa = localData.jawaban;
-    mulaiRender();
-  }, siswaData.noTes, idUjianAktif);
+  }, function(err) {
+    document.getElementById('soalText').textContent = '❌ Gagal memuat: ' + err;
+  }, idUjianAktif, siswaData.noTes, siswaData.nama);
 }
 
 function mulaiRender() {
@@ -1305,6 +1305,23 @@ function mulaiRender() {
   renderSoal(currentIndex);
   updateHeaderInfo();
   startTimer();
+  startAutoSave();
+}
+
+// ============================================================
+// AUTO-SAVE TIAP 30 DETIK
+// ============================================================
+function startAutoSave() {
+  if (autoSaveInterval) clearInterval(autoSaveInterval);
+  
+  autoSaveInterval = setInterval(function() {
+    if (!siswaData || !idUjianAktif || sudahSubmit) return;
+    
+    if (Object.keys(jawabanSiswa).length > 0) {
+      saveDraftToServer();
+      console.log('💾 Auto-save ke server');
+    }
+  }, 30000);
 }
 
 // ============================================================
@@ -1317,7 +1334,6 @@ function renderSoal(index) {
 
   document.getElementById('soalNomor').textContent = 'Soal ' + (index + 1);
 
-  // Handle gambar
   var soalText = q.soal || '';
   var imageHtml = '';
   var imgRegex = /\[img\](.*?)\[\/img\]/gi;
@@ -1335,7 +1351,6 @@ function renderSoal(index) {
   document.getElementById('soalText').textContent = soalText;
   document.getElementById('soalImageContainer').innerHTML = imageHtml;
 
-  // Render opsi
   var opsiHtml = '';
   var huruf = ['A', 'B', 'C', 'D', 'E'];
   var jawabanTerpilih = jawabanSiswa[q.nomor] || '';
@@ -1361,13 +1376,11 @@ function renderSoal(index) {
   }
 
   document.getElementById('scrollArea').scrollTop = 0;
-
-  // Update badge kosong
   updateKosongBadge();
 }
 
 // ============================================================
-// PILIH JAWABAN
+// PILIH JAWABAN (hanya simpan lokal, server via auto-save)
 // ============================================================
 function pilihJawaban(nomor, value) {
   jawabanSiswa[nomor] = value;
@@ -1382,9 +1395,6 @@ function pilihJawaban(nomor, value) {
   saveLocal();
   updateHeaderInfo();
   updateKosongBadge();
-
-  if (draftSaveTimer) clearTimeout(draftSaveTimer);
-  draftSaveTimer = setTimeout(function() { saveDraftToServer(); }, 2000);
 }
 
 function saveDraftToServer() {
@@ -1410,7 +1420,6 @@ function goNext() {
     renderSoal(currentIndex + 1);
     updateHeaderInfo();
     saveLocal();
-    saveDraftToServer();
   } else {
     keReview();
   }
@@ -1440,7 +1449,6 @@ function updateKosongBadge() {
 // ============================================================
 function openNavigator() {
   if (!soalList.length) return;
-
   navOpen = true;
   buildNavigatorGrid();
   updateNavStats();
@@ -1453,7 +1461,6 @@ function closeNavigator() {
 }
 
 function navOverlayClick(e) {
-  // Klik di luar modal → tutup
   if (e.target.id === 'navOverlay') closeNavigator();
 }
 
@@ -1492,8 +1499,6 @@ function lompatKe(index) {
   updateHeaderInfo();
   saveLocal();
   closeNavigator();
-
-  // Scroll ke atas area soal
   document.getElementById('scrollArea').scrollTop = 0;
 }
 
@@ -1575,6 +1580,9 @@ function autoSubmit() {
 function submitJawaban(isAuto) {
   if (sudahSubmit) return;
   sudahSubmit = true;
+  
+  // ✅ STOP auto-save & timer
+  if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; }
   if (timerInterval) clearInterval(timerInterval);
 
   var payload = {
@@ -1710,7 +1718,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   window.addEventListener('beforeunload', function() { saveLocal(); });
 
-  // Keyboard navigation
   document.addEventListener('keydown', function(e) {
     if (!document.getElementById('pageUjian').classList.contains('active')) return;
     if (navOpen) {
