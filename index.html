@@ -944,29 +944,64 @@ function callServer(funcName, callback, errorCallback) {
   var maxRetry = 3;
   var retryDelay = 2000;
   var attempt = 0;
+  var successCalled = false;   // ← CEGAH callback dobel
   
   function tryFetch() {
     attempt++;
     console.log('[CALL] ' + funcName + ' (attempt ' + attempt + '/' + maxRetry + ')');
 
+    // Timeout 25 detik — biar tidak nunggu selamanya
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 25000);
+
     fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: funcName, args: args }),
-      redirect: 'follow'
+      redirect: 'follow',
+      signal: controller.signal
     })
     .then(function(response) {
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      return response.json();
+      clearTimeout(timeoutId);
+      
+      // ✅ TERIMA 200 DAN 302 SEBAGAI SUKSES
+      if (response.status !== 200 && response.status !== 302) {
+        throw new Error('HTTP ' + response.status);
+      }
+      return response.text();   // ← Pakai text() dulu, lebih tahan redirect
     })
-    .then(function(result) {
+    .then(function(text) {
+      clearTimeout(timeoutId);
+      
+      // Parse JSON manual (kadang response redirect balikin HTML)
+      var result;
+      try {
+        result = JSON.parse(text);
+      } catch (e) {
+        // Kalau gagal parse, coba extract JSON dari HTML
+        var m = text.match(/\{[\s\S]*\}/);
+        if (m) {
+          try { result = JSON.parse(m[0]); }
+          catch (e2) { throw new Error('Response tidak valid'); }
+        } else {
+          throw new Error('Response tidak valid');
+        }
+      }
+      
+      if (successCalled) return;   // ← Cegah callback dobel
+      successCalled = true;
+      
       console.log('[OK] ' + funcName, result);
       if (callback) callback(result);
     })
     .catch(function(error) {
+      clearTimeout(timeoutId);
+      
+      if (successCalled) return;   // Kalau sudah sukses, abaikan error
+      
       console.error('[ERROR] ' + funcName + ' attempt ' + attempt, error);
       
-      if (attempt < maxRetry) {
+      if (attempt < maxRetry && error.name !== 'AbortError') {
         console.log('Retry in ' + retryDelay + 'ms...');
         setTimeout(tryFetch, retryDelay);
       } else {
