@@ -419,6 +419,40 @@
       color: #1a237e;
     }
 
+    /* ===== INFO BOX (untuk halaman Belum Mulai & Berakhir) ===== */
+    .info-box {
+      width: 100%;
+      max-width: 420px;
+      background: white;
+      border-radius: 16px;
+      padding: 32px 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .info-icon { font-size: 64px; margin-bottom: 12px; line-height: 1; }
+    .info-box h2 { color: #1a237e; font-size: 22px; margin-bottom: 8px; }
+    .info-subtitle { color: #555; font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+    .info-detail { color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 8px; }
+    .countdown-label { color: #888; font-size: 13px; margin-bottom: 8px; margin-top: 16px; }
+
+    .countdown {
+      font-family: 'Courier New', monospace;
+      font-size: 42px;
+      font-weight: 700;
+      color: #1a237e;
+      background: #e8eaf6;
+      padding: 16px 20px;
+      border-radius: 12px;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+      line-height: 1;
+    }
+
+    .countdown.warning { color: #c62828; background: #ffebee; animation: pulse 1s infinite; }
+
+    .info-box .btn { width: 100%; padding: 14px; font-size: 15px; margin-top: 6px; }
+
     .overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -710,16 +744,19 @@
       .soal-text { font-size: 14px; }
       .opsi-label { font-size: 13px; }
       .btn { font-size: 13px; padding: 11px 12px; }
+      .countdown { font-size: 32px; padding: 12px 16px; }
     }
   </style>
 </head>
 <body>
 
+<!-- OFFLINE BANNER -->
 <div class="offline-banner" id="offlineBanner">
   ⚠️ Koneksi terputus
   <button onclick="retryConnection()">🔄 Coba Lagi</button>
 </div>
 
+<!-- PAGE: LOGIN -->
 <div id="pageLogin" class="page active">
   <div class="page-center">
     <div class="login-box">
@@ -735,6 +772,7 @@
   </div>
 </div>
 
+<!-- PAGE: DAFTAR UJIAN -->
 <div id="pageList" class="page">
   <div class="list-page">
     <div class="list-header">
@@ -750,6 +788,49 @@
   </div>
 </div>
 
+<!-- PAGE: UJIAN BELUM DIMULAI (BARU) -->
+<div id="pageBelumMulai" class="page">
+  <div class="page-center">
+    <div class="info-box">
+      <div class="info-icon">⏳</div>
+      <h2>Ujian Belum Dimulai</h2>
+      <div class="info-subtitle" id="belumMulaiMapel">-</div>
+      <div class="countdown-label">Ujian akan dimulai dalam:</div>
+      <div class="countdown" id="countdownDisplay">--:--:--</div>
+      <div class="info-detail" id="belumMulaiWaktu">-</div>
+      <button class="btn btn-primary" id="btnMulaiSekarang"
+              style="display:none;margin-top:20px;" onclick="mulaiUjianSekarang()">
+        🚀 Mulai Ujian Sekarang
+      </button>
+      <button class="btn btn-outline" style="margin-top:12px;" onclick="doLogout()">
+        🚪 Keluar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: UJIAN BERAKHIR (BARU) -->
+<div id="pageBerakhir" class="page">
+  <div class="page-center">
+    <div class="info-box">
+      <div class="info-icon">🔒</div>
+      <h2>Ujian Telah Berakhir</h2>
+      <div class="info-subtitle" id="berakhirMapel">-</div>
+      <div class="info-detail">
+        Waktu ujian telah berakhir pada:<br>
+        <strong id="berakhirWaktu">-</strong>
+      </div>
+      <div class="info-detail" style="margin-top:16px;color:#888;font-size:13px;">
+        Hubungi pengawas/guru jika Anda merasa ini kesalahan.
+      </div>
+      <button class="btn btn-primary" style="margin-top:20px;" onclick="doLogout()">
+        🚪 Keluar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: UJIAN -->
 <div id="pageUjian" class="page">
   <div class="app">
     <div class="header">
@@ -787,6 +868,7 @@
   </div>
 </div>
 
+<!-- PAGE: REVIEW -->
 <div id="pageReview" class="page">
   <div class="review-page">
     <div class="review-card">
@@ -817,6 +899,7 @@
   </div>
 </div>
 
+<!-- PAGE: HASIL -->
 <div id="pageHasil" class="page">
   <div class="hasil-page">
     <div class="hasil-card">
@@ -830,6 +913,7 @@
   </div>
 </div>
 
+<!-- MODAL KONFIRMASI -->
 <div class="overlay" id="overlayModal">
   <div class="modal">
     <div class="modal-icon" id="modalIcon">⚠️</div>
@@ -842,6 +926,7 @@
   </div>
 </div>
 
+<!-- NAVIGATOR MODAL -->
 <div class="nav-overlay" id="navOverlay" onclick="navOverlayClick(event)">
   <div class="nav-modal">
     <div class="nav-header">
@@ -882,13 +967,13 @@
   </div>
 </div>
 
+<!-- IMAGE FULLSCREEN -->
 <div class="image-fs" id="imageFs" onclick="closeImageFs()">
   <button class="image-fs-close" onclick="closeImageFs()">×</button>
   <img id="imageFsImg" src="" alt="Soal">
 </div>
 
 <script>
-
 // ============================================================
 // KONFIGURASI BACKEND
 // ============================================================
@@ -914,6 +999,12 @@ var sudahSubmit = false;
 var warningShown = false;
 var isOnline = true;
 var navOpen = false;
+
+// ✅ State untuk pengecekan waktu
+var waktuMulaiUjian = null;      // Date object
+var waktuSelesaiUjian = null;    // Date object
+var countdownInterval = null;    // untuk countdown belum mulai
+var cekWaktuSelesaiInterval = null; // cek berkala saat mengerjakan
 
 // ============================================================
 // GET URL PARAMS
@@ -944,13 +1035,12 @@ function callServer(funcName, callback, errorCallback) {
   var maxRetry = 3;
   var retryDelay = 2000;
   var attempt = 0;
-  var successCalled = false;   // ← CEGAH callback dobel
+  var successCalled = false;
   
   function tryFetch() {
     attempt++;
     console.log('[CALL] ' + funcName + ' (attempt ' + attempt + '/' + maxRetry + ')');
 
-    // Timeout 25 detik — biar tidak nunggu selamanya
     var controller = new AbortController();
     var timeoutId = setTimeout(function() { controller.abort(); }, 25000);
 
@@ -963,22 +1053,17 @@ function callServer(funcName, callback, errorCallback) {
     })
     .then(function(response) {
       clearTimeout(timeoutId);
-      
-      // ✅ TERIMA 200 DAN 302 SEBAGAI SUKSES
       if (response.status !== 200 && response.status !== 302) {
         throw new Error('HTTP ' + response.status);
       }
-      return response.text();   // ← Pakai text() dulu, lebih tahan redirect
+      return response.text();
     })
     .then(function(text) {
       clearTimeout(timeoutId);
-      
-      // Parse JSON manual (kadang response redirect balikin HTML)
       var result;
       try {
         result = JSON.parse(text);
       } catch (e) {
-        // Kalau gagal parse, coba extract JSON dari HTML
         var m = text.match(/\{[\s\S]*\}/);
         if (m) {
           try { result = JSON.parse(m[0]); }
@@ -988,7 +1073,7 @@ function callServer(funcName, callback, errorCallback) {
         }
       }
       
-      if (successCalled) return;   // ← Cegah callback dobel
+      if (successCalled) return;
       successCalled = true;
       
       console.log('[OK] ' + funcName, result);
@@ -996,8 +1081,7 @@ function callServer(funcName, callback, errorCallback) {
     })
     .catch(function(error) {
       clearTimeout(timeoutId);
-      
-      if (successCalled) return;   // Kalau sudah sukses, abaikan error
+      if (successCalled) return;
       
       console.error('[ERROR] ' + funcName + ' attempt ' + attempt, error);
       
@@ -1059,7 +1143,6 @@ function clearLocal() {
   var key = getStorageKey('jawaban');
   if (key) { try { localStorage.removeItem(key); } catch (e) {} }
   
-  // Clear cache soal juga
   if (idUjianAktif) {
     try { localStorage.removeItem('soal_cache_' + idUjianAktif); } catch (e) {}
   }
@@ -1144,6 +1227,8 @@ function doLogout() {
     currentIndex = 0;
     if (timerInterval) clearInterval(timerInterval);
     if (autoSaveInterval) clearInterval(autoSaveInterval);
+    if (countdownInterval) clearInterval(countdownInterval);
+    if (cekWaktuSelesaiInterval) clearInterval(cekWaktuSelesaiInterval);
 
     document.getElementById('inputNoTes').value = '';
     document.getElementById('inputNama').value = '';
@@ -1206,7 +1291,7 @@ function pilihUjian(idUjian, mapel, kelas) {
 }
 
 // ============================================================
-// START UJIAN - OPTIMASI: 1 REQUEST GABUNGAN
+// START UJIAN - DENGAN PENGECEKAN WAKTU
 // ============================================================
 function startUjian() {
   sudahSubmit = false;
@@ -1240,7 +1325,7 @@ function startUjian() {
         totalSoal = soalList.length;
         durasiUjian = cachedData.durasi || 90;
         
-        // Lanjut cek status siswa (ini masih perlu untuk cek resume)
+        // Masih perlu cek status siswa dari server
         callServer('cekStatusSiswa', function(result) {
           if (result && result.success && result.ada) {
             if (result.status === 'SELESAI') {
@@ -1272,7 +1357,7 @@ function startUjian() {
     console.warn('Cache tidak valid:', e);
   }
 
-  // ❌ Tidak ada cache → fetch dengan 1 request gabungan
+  // ❌ Tidak ada cache → fetch data lengkap
   console.log('⏳ Fetch data lengkap dari server');
   
   callServer('getUjianDataLengkap', function(result) {
@@ -1281,6 +1366,41 @@ function startUjian() {
       return;
     }
     
+    // ✅ SIMPAN WAKTU UJIAN
+    waktuMulaiUjian = result.waktuMulai ? new Date(result.waktuMulai) : null;
+    waktuSelesaiUjian = result.waktuSelesai ? new Date(result.waktuSelesai) : null;
+    
+    console.log('⏰ Waktu ujian:', {
+      mulai: waktuMulaiUjian,
+      selesai: waktuSelesaiUjian,
+      sekarang: new Date()
+    });
+    
+    // ✅ CEK STATUS WAKTU
+    var cekStatus = cekStatusWaktu();
+    
+    if (cekStatus === 'BELUM_MULAI') {
+      // Tampilkan halaman "Belum Dimulai"
+      showPage('pageBelumMulai');
+      document.getElementById('belumMulaiMapel').textContent = 
+        result.mapel + ' · Kelas ' + result.kelas;
+      document.getElementById('belumMulaiWaktu').innerHTML = 
+        'Jadwal: <strong>' + formatWaktuLengkap(waktuMulaiUjian) + '</strong>';
+      startCountdownBelumMulai(waktuMulaiUjian);
+      return;
+    }
+    
+    if (cekStatus === 'SUDAH_BERAKHIR') {
+      // Tampilkan halaman "Berakhir"
+      showPage('pageBerakhir');
+      document.getElementById('berakhirMapel').textContent = 
+        result.mapel + ' · Kelas ' + result.kelas;
+      document.getElementById('berakhirWaktu').textContent = 
+        formatWaktuLengkap(waktuSelesaiUjian);
+      return;
+    }
+    
+    // ✅ SEDANG BERLANGSUNG — lanjut normal
     soalList = result.soal || [];
     totalSoal = soalList.length;
     durasiUjian = result.durasi || 90;
@@ -1290,7 +1410,7 @@ function startUjian() {
       return;
     }
 
-    // ✅ SIMPAN KE CACHE
+    // Simpan cache
     try {
       localStorage.setItem(cacheKey, JSON.stringify({
         soal: soalList,
@@ -1327,6 +1447,169 @@ function startUjian() {
   }, idUjianAktif, siswaData.noTes, siswaData.nama);
 }
 
+// ============================================================
+// ✅ CEK STATUS WAKTU UJIAN
+// ============================================================
+function cekStatusWaktu() {
+  if (!waktuMulaiUjian || !waktuSelesaiUjian) return 'AKTIF'; // fallback
+
+  var sekarang = new Date();
+  if (sekarang < waktuMulaiUjian) return 'BELUM_MULAI';
+  if (sekarang > waktuSelesaiUjian) return 'SUDAH_BERAKHIR';
+  return 'AKTIF';
+}
+
+// ============================================================
+// ✅ COUNTDOWN BELUM MULAI
+// ============================================================
+function startCountdownBelumMulai(waktuMulai) {
+  if (countdownInterval) clearInterval(countdownInterval);
+
+  var countdownEl = document.getElementById('countdownDisplay');
+  var btnMulai = document.getElementById('btnMulaiSekarang');
+
+  function updateCountdown() {
+    var sekarang = new Date();
+    var selisih = waktuMulai.getTime() - sekarang.getTime();
+
+    if (selisih <= 0) {
+      // Waktu sudah tiba
+      clearInterval(countdownInterval);
+      countdownEl.textContent = '00:00:00';
+      countdownEl.classList.remove('warning');
+      btnMulai.style.display = 'block';
+      return;
+    }
+
+    var jam = Math.floor(selisih / 3600000);
+    var menit = Math.floor((selisih % 3600000) / 60000);
+    var detik = Math.floor((selisih % 60000) / 1000);
+
+    countdownEl.textContent =
+      String(jam).padStart(2, '0') + ':' +
+      String(menit).padStart(2, '0') + ':' +
+      String(detik).padStart(2, '0');
+
+    // Warning kalau < 5 menit
+    if (selisih <= 300000) {
+      countdownEl.classList.add('warning');
+    } else {
+      countdownEl.classList.remove('warning');
+    }
+
+    // Kalau sudah <= 0 di iterasi berikutnya, tombol muncul
+    if (selisih <= 1000) {
+      btnMulai.style.display = 'block';
+    }
+  }
+
+  updateCountdown();
+  countdownInterval = setInterval(updateCountdown, 1000);
+}
+
+// ============================================================
+// ✅ MULAI UJIAN DARI HALAMAN BELUM MULAI
+// ============================================================
+function mulaiUjianSekarang() {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+  
+  // Cek dulu apakah masih dalam waktu ujian
+  var status = cekStatusWaktu();
+  if (status === 'SUDAH_BERAKHIR') {
+    showPage('pageBerakhir');
+    document.getElementById('berakhirMapel').textContent = mapelAktif + ' · Kelas ' + kelasAktif;
+    document.getElementById('berakhirWaktu').textContent = formatWaktuLengkap(waktuSelesaiUjian);
+    return;
+  }
+  
+  // Lanjut ke ujian
+  showPage('pageUjian');
+  
+  // Cek cache
+  var cacheKey = 'soal_cache_' + idUjianAktif;
+  try {
+    var cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      var cachedData = JSON.parse(cached);
+      soalList = cachedData.soal;
+      totalSoal = soalList.length;
+      durasiUjian = cachedData.durasi || 90;
+      
+      callServer('cekStatusSiswa', function(result) {
+        if (result && result.success && result.ada) {
+          if (result.status === 'SELESAI') {
+            sudahSubmit = true;
+            showHasil(result.nilai || 0);
+            return;
+          }
+          var draftJawaban = result.jawaban || {};
+          if (Object.keys(draftJawaban).length > 0) {
+            showModalConfirm('🔄 Lanjutkan Ujian?',
+              'Ditemukan jawaban tersimpan (' + Object.keys(draftJawaban).length + ' soal). Lanjutkan?',
+              function(ok) {
+                if (ok) jawabanSiswa = draftJawaban;
+                else jawabanSiswa = {};
+                mulaiRender();
+              });
+          } else {
+            mulaiRender();
+          }
+        } else {
+          mulaiRender();
+        }
+      }, function() { mulaiRender(); }, siswaData.noTes, idUjianAktif);
+      return;
+    }
+  } catch (e) {}
+  
+  // Kalau tidak ada cache, panggil ulang startUjian
+  startUjian();
+}
+
+// ============================================================
+// ✅ CEK BERKALA APAKAH WAKTU SELESAI TERLEWAT
+// ============================================================
+function startCekWaktuSelesai() {
+  if (cekWaktuSelesaiInterval) clearInterval(cekWaktuSelesaiInterval);
+  
+  cekWaktuSelesaiInterval = setInterval(function() {
+    if (sudahSubmit) return;
+    if (!waktuSelesaiUjian) return;
+    
+    var sekarang = new Date();
+    if (sekarang >= waktuSelesaiUjian) {
+      console.log('⏰ Waktu selesai terlewat — auto submit');
+      clearInterval(cekWaktuSelesaiInterval);
+      autoSubmit();
+    }
+  }, 30000); // cek tiap 30 detik
+}
+
+// ============================================================
+// FORMAT WAKTU LENGKAP (untuk ditampilkan)
+// ============================================================
+function formatWaktuLengkap(date) {
+  if (!date) return '-';
+  var d = (date instanceof Date) ? date : new Date(date);
+  if (isNaN(d.getTime())) return '-';
+  
+  var bulanIndo = ['Januari','Februari','Maret','April','Mei','Juni',
+                   'Juli','Agustus','September','Oktober','November','Desember'];
+  var hari = d.getDate();
+  var bulan = bulanIndo[d.getMonth()];
+  var tahun = d.getFullYear();
+  var jam = String(d.getHours()).padStart(2, '0');
+  var menit = String(d.getMinutes()).padStart(2, '0');
+  
+  return hari + ' ' + bulan + ' ' + tahun + ', ' + jam + ':' + menit;
+}
+
+// ============================================================
+// MULAI RENDER
+// ============================================================
 function mulaiRender() {
   if (!waktuMulai) waktuMulai = new Date().toISOString();
 
@@ -1341,6 +1624,7 @@ function mulaiRender() {
   updateHeaderInfo();
   startTimer();
   startAutoSave();
+  startCekWaktuSelesai();  // ✅ cek waktu selesai berkala
 }
 
 // ============================================================
@@ -1415,7 +1699,7 @@ function renderSoal(index) {
 }
 
 // ============================================================
-// PILIH JAWABAN (hanya simpan lokal, server via auto-save)
+// PILIH JAWABAN
 // ============================================================
 function pilihJawaban(nomor, value) {
   jawabanSiswa[nomor] = value;
@@ -1616,9 +1900,9 @@ function submitJawaban(isAuto) {
   if (sudahSubmit) return;
   sudahSubmit = true;
   
-  // ✅ STOP auto-save & timer
   if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; }
   if (timerInterval) clearInterval(timerInterval);
+  if (cekWaktuSelesaiInterval) { clearInterval(cekWaktuSelesaiInterval); cekWaktuSelesaiInterval = null; }
 
   var payload = {
     noTes: siswaData.noTes,
