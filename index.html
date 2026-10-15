@@ -1177,19 +1177,38 @@ function getUrlParams() {
 }
 
 // ============================================================
-// CALL SERVER
+// CALL SERVER — Dual mode (fetch + google.script.run)
 // ============================================================
 function callServer(funcName, callback, errorCallback) {
   var args = Array.prototype.slice.call(arguments, 3);
-  
+  console.log('[CALL] ' + funcName, args);
+
+  // ✅ Mode 1: Google Apps Script (google.script.run) — otomatis dipakai jika tersedia
+  if (typeof google !== 'undefined' && google.script && google.script.run) {
+    var runner = google.script.run
+      .withSuccessHandler(function(result) {
+        console.log('[OK] ' + funcName, result);
+        if (callback) callback(result);
+      })
+      .withFailureHandler(function(error) {
+        console.error('[ERROR] ' + funcName, error);
+        if (errorCallback) errorCallback(error);
+        else alert('Error: ' + error);
+      });
+    try { runner[funcName].apply(runner, args); }
+    catch (e) { if (errorCallback) errorCallback(e.message); else alert('Error: ' + e.message); }
+    return;
+  }
+
+  // ✅ Mode 2: GitHub Pages (fetch ke Apps Script)
   var maxRetry = 2;
   var retryDelay = 1000;
   var attempt = 0;
   var successCalled = false;
-  
+
   function tryFetch() {
     attempt++;
-    console.log('[CALL] ' + funcName + ' (attempt ' + attempt + '/' + maxRetry + ')');
+    console.log('[FETCH] ' + funcName + ' (attempt ' + attempt + '/' + maxRetry + ')');
 
     var controller = new AbortController();
     var timeoutId = setTimeout(function() { controller.abort(); }, 60000);
@@ -1222,35 +1241,35 @@ function callServer(funcName, callback, errorCallback) {
           throw new Error('Response tidak valid');
         }
       }
-      
+
       if (successCalled) return;
       successCalled = true;
-      
+
       console.log('[OK] ' + funcName, result);
       if (callback) callback(result);
     })
     .catch(function(error) {
       clearTimeout(timeoutId);
       if (successCalled) return;
-      
+
       console.error('[ERROR] ' + funcName + ' attempt ' + attempt, error);
-      
-if (error.name === 'AbortError') {
-  console.warn('⏰ Timeout, tidak retry');
-  if (errorCallback) errorCallback('Server lambat, coba lagi');
-  else showOfflineBanner();
-  return;
-}
-if (attempt < maxRetry) {
-  console.log('Retry in ' + retryDelay + 'ms...');
-  setTimeout(tryFetch, retryDelay);
-} else {
-  if (errorCallback) errorCallback(error.message || error.toString());
-  else showOfflineBanner();
-}
+
+      if (error.name === 'AbortError') {
+        console.warn('⏰ Timeout, tidak retry');
+        if (errorCallback) errorCallback('Server lambat, coba lagi');
+        else showOfflineBanner();
+        return;
+      }
+      if (attempt < maxRetry) {
+        console.log('Retry in ' + retryDelay + 'ms...');
+        setTimeout(tryFetch, retryDelay);
+      } else {
+        if (errorCallback) errorCallback(error.message || error.toString());
+        else showOfflineBanner();
+      }
     });
   }
-  
+
   tryFetch();
 }
 
