@@ -1192,7 +1192,7 @@ function callServer(funcName, callback, errorCallback) {
     console.log('[CALL] ' + funcName + ' (attempt ' + attempt + '/' + maxRetry + ')');
 
     var controller = new AbortController();
-    var timeoutId = setTimeout(function() { controller.abort(); }, 15000);
+    var timeoutId = setTimeout(function() { controller.abort(); }, 60000);
 
     fetch(APPS_SCRIPT_URL, {
       method: 'POST',
