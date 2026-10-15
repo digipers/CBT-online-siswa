@@ -1364,9 +1364,10 @@ function doLogin() {
         mapelAktif = params.mapel || 'Ujian';
         kelasAktif = params.kelas || '';
         startUjian();
-      } else {
+        
+       } else {
         showPage('pageList');
-        loadUjianList();
+        loadUjianListAutoOpen();     // ← SUDAH DIGANTI
       }
     } else {
       msgEl.textContent = '❌ ' + (result ? result.message : 'Gagal login');
