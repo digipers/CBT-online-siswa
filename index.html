@@ -1235,13 +1235,19 @@ function callServer(funcName, callback, errorCallback) {
       
       console.error('[ERROR] ' + funcName + ' attempt ' + attempt, error);
       
-      if (attempt < maxRetry && error.name !== 'AbortError') {
-        console.log('Retry in ' + retryDelay + 'ms...');
-        setTimeout(tryFetch, retryDelay);
-      } else {
-        if (errorCallback) errorCallback(error.message || error.toString());
-        else showOfflineBanner();
-      }
+if (error.name === 'AbortError') {
+  console.warn('⏰ Timeout, tidak retry');
+  if (errorCallback) errorCallback('Server lambat, coba lagi');
+  else showOfflineBanner();
+  return;
+}
+if (attempt < maxRetry) {
+  console.log('Retry in ' + retryDelay + 'ms...');
+  setTimeout(tryFetch, retryDelay);
+} else {
+  if (errorCallback) errorCallback(error.message || error.toString());
+  else showOfflineBanner();
+}
     });
   }
   
