@@ -1386,8 +1386,15 @@ function doLogin() {
         showPage('pageList');
         loadUjianListAutoOpen();
       }
-    } else {
-      msgEl.textContent = '❌ ' + (result ? result.message : 'Gagal login');
+        } else {
+      // ✅ Cek apakah karena session lock
+      if (result && result.lockedBy) {
+        msgEl.innerHTML = '🔒 <strong>Nomor Tes Sedang Digunakan</strong><br>' +
+          '<span style="font-size:12px;">Nomor ini sedang aktif di perangkat lain. ' +
+          'Kalau ini benar-benar Anda, tunggu 5 menit atau hubungi pengawas.</span>';
+      } else {
+        msgEl.textContent = '❌ ' + (result ? result.message : 'Gagal login');
+      }
       msgEl.style.display = 'block';
     }
   }, function(err) {
@@ -1871,41 +1878,27 @@ function formatWaktuLengkap(date) {
 // ============================================================
 function mulaiRender() {
   if (!waktuMulai) waktuMulai = new Date().toISOString();
-
-  var localData = loadLocal();
-  if (localData && localData.currentIndex !== undefined && currentIndex === 0) {
-    currentIndex = localData.currentIndex;
-  }
-
-  if (currentIndex < 0 || currentIndex >= totalSoal) currentIndex = 0;
-
-  if (totalSoal !== soalList.length) {
-    console.warn('⚠️ totalSoal tidak sinkron, diperbaiki otomatis');
-    totalSoal = soalList.length;
-  }
-
-  console.log('🔍 DEBUG mulaiRender:', {
-    totalSoal: totalSoal,
-    soalListLength: soalList.length,
-    currentIndex: currentIndex,
-    durasiUjian: durasiUjian
-  });
-
-  if (totalSoal === 0) {
-    document.getElementById('soalText').innerHTML = 
-      '<div style="text-align:center;padding:20px;color:#c62828;">' +
-      '<div style="font-size:32px;">❌</div>' +
-      '<div style="font-weight:600;">Tidak ada soal</div>' +
-      '<div style="font-size:12px;color:#888;margin-top:6px;">Hubungi pengawas</div>' +
-      '</div>';
-    return;
-  }
-
-  renderSoal(currentIndex);
-  updateHeaderInfo();
+  // ...
   startTimer();
   startAutoSave();
   startCekWaktuSelesai();
+  startHeartbeat(); // ✅ TAMBAHAN
+}
+
+// ✅ Heartbeat — refresh kunci tiap 2 menit
+var heartbeatInterval = null;
+
+function startHeartbeat() {
+  if (heartbeatInterval) clearInterval(heartbeatInterval);
+  heartbeatInterval = setInterval(function() {
+    if (!siswaData || !idUjianAktif || sudahSubmit) return;
+    callServer('heartbeatNomorTes', function(result) {
+      if (result && !result.success) {
+        console.warn('⚠️ Heartbeat gagal:', result.message);
+        // Kalau kunci hilang, tidak apa-apa — siswa tetap lanjut
+      }
+    }, null, siswaData.noTes, siswaData.noTes.toUpperCase());
+  }, 120000); // 2 menit
 }
 
 // ============================================================
