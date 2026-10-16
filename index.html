@@ -1367,6 +1367,14 @@ function doLogin() {
 
   var params = getUrlParams();
   var kelasUjian = params.kelas || '';
+  
+  // ✅ Buat / ambil deviceId unik per browser
+  var deviceId = localStorage.getItem('device_id');
+  if (!deviceId) {
+    deviceId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+    localStorage.setItem('device_id', deviceId);
+  }
+  console.log('[DEVICE] deviceId:', deviceId);
 
   callServer('loginSiswa', function(result) {
     document.getElementById('btnLogin').disabled = false;
@@ -1374,6 +1382,8 @@ function doLogin() {
 
     if (result && result.success) {
       siswaData = result.siswa;
+      siswaData.deviceId = deviceId;  // ✅ Simpan deviceId
+      
       document.getElementById('listSiswaInfo').innerHTML =
         'Selamat datang, <strong>' + escapeHtml(siswaData.nama) + '</strong> · Kelas ' + escapeHtml(siswaData.kelas);
 
@@ -1386,7 +1396,7 @@ function doLogin() {
         showPage('pageList');
         loadUjianListAutoOpen();
       }
-        } else {
+    } else {
       // ✅ Cek apakah karena session lock
       if (result && result.lockedBy) {
         msgEl.innerHTML = '🔒 <strong>Nomor Tes Sedang Digunakan</strong><br>' +
@@ -1402,11 +1412,27 @@ function doLogin() {
     document.getElementById('btnLogin').textContent = '🚀 Masuk';
     msgEl.textContent = '❌ Error: ' + err;
     msgEl.style.display = 'block';
-  }, noTes, kelasUjian); // ← HANYA 2 PARAMETER (nama dihapus)
+  }, noTes, kelasUjian, deviceId); // ✅ KIRIM 3 PARAMETER
 }
 
 function doLogout() {
   if (confirm('Keluar dari ujian?')) {
+    
+    // ✅ PENTING: Lepas kunci di server SEBELUM reset
+    if (siswaData && siswaData.noTes) {
+      callServer(
+        'logoutSiswa',
+        function(result) {
+          console.log('[LOGOUT] Kunci dilepas:', result);
+        },
+        function(err) {
+          console.warn('[LOGOUT] Gagal lepas kunci:', err);
+        },
+        siswaData.noTes,
+        siswaData.deviceId || siswaData.noTes.toUpperCase()
+      );
+    }
+    
     clearLocal();
     siswaData = null;
     idUjianAktif = null;
@@ -1415,7 +1441,7 @@ function doLogout() {
     currentIndex = 0;
     if (timerInterval) clearInterval(timerInterval);
     if (autoSaveInterval) clearInterval(autoSaveInterval);
-     if (autoSaveServerInterval) clearInterval(autoSaveServerInterval);  // ✅ TAMBAHAN
+    if (autoSaveServerInterval) clearInterval(autoSaveServerInterval);
     if (countdownInterval) clearInterval(countdownInterval);
     if (cekWaktuSelesaiInterval) clearInterval(cekWaktuSelesaiInterval);
 
@@ -1425,7 +1451,6 @@ function doLogout() {
     showPage('pageLogin');
   }
 }
-
 // ============================================================
 // LOAD UJIAN LIST
 // ============================================================
@@ -1917,15 +1942,19 @@ function startHeartbeat() {
   if (heartbeatInterval) clearInterval(heartbeatInterval);
   heartbeatInterval = setInterval(function() {
     if (!siswaData || !idUjianAktif || sudahSubmit) return;
+    
+    // ✅ Pakai deviceId, bukan noTes
+    var deviceIdUntukHeartbeat = siswaData.deviceId || siswaData.noTes.toUpperCase();
+    
     callServer('heartbeatNomorTes', function(result) {
       if (result && !result.success) {
         console.warn('⚠️ Heartbeat gagal:', result.message);
-        // Kalau kunci hilang, tidak apa-apa — siswa tetap lanjut
+      } else {
+        console.log('💓 Heartbeat OK — kunci di-refresh');
       }
-    }, null, siswaData.noTes, siswaData.noTes.toUpperCase());
+    }, null, siswaData.noTes, deviceIdUntukHeartbeat);
   }, 120000); // 2 menit
 }
-
 // ============================================================
 // AUTO-SAVE TIAP 2 MENIT
 // ============================================================
@@ -2253,10 +2282,11 @@ function submitJawaban(isAuto) {
   if (sudahSubmit) return;
   sudahSubmit = true;
   
-  if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; }
-  if (autoSaveServerInterval) { clearInterval(autoSaveServerInterval); autoSaveServerInterval = null; }  // ✅ TAMBAHAN
+   if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; }
+  if (autoSaveServerInterval) { clearInterval(autoSaveServerInterval); autoSaveServerInterval = null; }
   if (timerInterval) clearInterval(timerInterval);
   if (cekWaktuSelesaiInterval) { clearInterval(cekWaktuSelesaiInterval); cekWaktuSelesaiInterval = null; }
+  if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }  // ✅ TAMBAH INI
 
   var payload = {
     noTes: siswaData.noTes,
