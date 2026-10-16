@@ -1522,7 +1522,46 @@ function loadUjianListAutoOpen() {
     container.innerHTML = '<div style="text-align:center;padding:40px;color:#c62828;">Gagal: ' + err + '</div>';
   }, siswaData.noTes, siswaData.kelas);
 }
+// ============================================================
+// RENDER DAFTAR UJIAN
+// ============================================================
+function renderUjianListUI(list) {
+  var container = document.getElementById('listUjianContainer');
+  
+  if (!list || !list.length) {
+    container.innerHTML = 
+      '<div style="text-align:center;padding:40px;">' +
+      '<div style="font-size:48px;margin-bottom:12px;">📭</div>' +
+      '<h3 style="color:#555;">Belum ada ujian</h3>' +
+      '</div>';
+    return;
+  }
 
+  var html = '';
+  list.forEach(function(u) {
+    var isAktif = String(u.status).toUpperCase() === 'AKTIF';
+    var badgeClass = isAktif ? 'aktif' : 'terjadwal';
+    var badgeIcon = isAktif ? '🟢' : '🟡';
+
+    html += '<div class="ujian-item" onclick="pilihUjian(\'' + u.id + '\',\'' + escapeHtml(u.mapel) + '\',\'' + escapeHtml(u.kelas) + '\')">' +
+      '<div class="ujian-info">' +
+      '<div class="ujian-mapel">📚 ' + escapeHtml(u.mapel) + '</div>' +
+      '<div class="ujian-meta">' +
+      '<span>📖 Kelas ' + escapeHtml(u.kelas) + '</span>' +
+      '<span>📝 ' + (u.jumlahSoal || 0) + ' soal</span>' +
+      '</div></div>' +
+      '<span class="status-badge ' + badgeClass + '">' + badgeIcon + ' ' + escapeHtml(u.status) + '</span>' +
+      '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function pilihUjian(idUjian, mapel, kelas) {
+  idUjianAktif = idUjian;
+  mapelAktif = mapel;
+  kelasAktif = kelas;
+  startUjian();
+}
 function pilihUjian(idUjian, mapel, kelas) {
   idUjianAktif = idUjian;
   mapelAktif = mapel;
