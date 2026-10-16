@@ -1145,6 +1145,7 @@ var totalSoal = 0;
 var timeLeft = 0;
 var timerInterval = null;
 var autoSaveInterval = null;
+  var autoSaveServerInterval = null;
 var waktuMulai = null;
 var sudahSubmit = false;
 var warningShown = false;
@@ -1410,6 +1411,7 @@ function doLogout() {
     currentIndex = 0;
     if (timerInterval) clearInterval(timerInterval);
     if (autoSaveInterval) clearInterval(autoSaveInterval);
+     if (autoSaveServerInterval) clearInterval(autoSaveServerInterval);  // ✅ TAMBAHAN
     if (countdownInterval) clearInterval(countdownInterval);
     if (cekWaktuSelesaiInterval) clearInterval(cekWaktuSelesaiInterval);
 
@@ -1914,14 +1916,21 @@ function mulaiRender() {
 // AUTO-SAVE TIAP 2 MENIT
 // ============================================================
 function startAutoSave() {
+  // ✅ 1. Auto-save LOKAL setiap 15 detik (ke localStorage — cepat, tidak ke server)
   if (autoSaveInterval) clearInterval(autoSaveInterval);
-  
   autoSaveInterval = setInterval(function() {
     if (!siswaData || !idUjianAktif || sudahSubmit) return;
-    
+    saveLocal();
+    console.log('💾 Auto-save lokal (localStorage)');
+  }, 15000); // 15 detik
+
+  // ✅ 2. Auto-save SERVER setiap 2 menit (aman, hemat kuota)
+  if (autoSaveServerInterval) clearInterval(autoSaveServerInterval);
+  autoSaveServerInterval = setInterval(function() {
+    if (!siswaData || !idUjianAktif || sudahSubmit) return;
     if (Object.keys(jawabanSiswa).length > 0) {
       saveDraftToServer();
-      console.log('💾 Auto-save ke server');
+      console.log('☁️ Auto-save server (2 menit)');
     }
   }, 120000); // 2 menit
 }
@@ -2231,6 +2240,7 @@ function submitJawaban(isAuto) {
   sudahSubmit = true;
   
   if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; }
+  if (autoSaveServerInterval) { clearInterval(autoSaveServerInterval); autoSaveServerInterval = null; }  // ✅ TAMBAHAN
   if (timerInterval) clearInterval(timerInterval);
   if (cekWaktuSelesaiInterval) { clearInterval(cekWaktuSelesaiInterval); cekWaktuSelesaiInterval = null; }
 
