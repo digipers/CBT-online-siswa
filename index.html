@@ -893,8 +893,7 @@
       <div class="login-subtitle">MAS ASH SHIDIQI</div>
       <div class="login-info" id="loginInfo">Masukkan Nomor Tes dan Nama Anda</div>
       <input type="text" id="inputNoTes" placeholder="Nomor Tes" autocomplete="off" autocorrect="off" autocapitalize="characters">
-      <input type="text" id="inputNama" placeholder="Nama Lengkap" autocomplete="off" autocorrect="off">
-      <button class="btn btn-primary" id="btnLogin" onclick="doLogin()">🚀 Masuk</button>
+         <button class="btn btn-primary" id="btnLogin" onclick="doLogin()">🚀 Masuk</button>
       <div id="loginMessage" style="margin-top:14px;font-size:13px;color:#c62828;display:none;"></div>
     </div>
   </div>
@@ -1352,14 +1351,12 @@ window.addEventListener('offline', function() { showOfflineBanner(); });
 
 // ============================================================
 // LOGIN
-// ============================================================
 function doLogin() {
   var noTes = document.getElementById('inputNoTes').value.trim();
-  var nama = document.getElementById('inputNama').value.trim();
   var msgEl = document.getElementById('loginMessage');
 
-  if (!noTes || !nama) {
-    msgEl.textContent = '❌ Nomor Tes dan Nama wajib diisi!';
+  if (!noTes) {
+    msgEl.textContent = '❌ Nomor Tes wajib diisi!';
     msgEl.style.display = 'block';
     return;
   }
@@ -1398,7 +1395,7 @@ function doLogin() {
     document.getElementById('btnLogin').textContent = '🚀 Masuk';
     msgEl.textContent = '❌ Error: ' + err;
     msgEl.style.display = 'block';
-  }, noTes, nama, kelasUjian);
+  }, noTes, kelasUjian); // ← HANYA 2 PARAMETER (nama dihapus)
 }
 
 function doLogout() {
@@ -1416,7 +1413,6 @@ function doLogout() {
     if (cekWaktuSelesaiInterval) clearInterval(cekWaktuSelesaiInterval);
 
     document.getElementById('inputNoTes').value = '';
-    document.getElementById('inputNama').value = '';
     document.getElementById('loginMessage').style.display = 'none';
 
     showPage('pageLogin');
@@ -2394,12 +2390,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   document.getElementById('inputNoTes').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') document.getElementById('inputNama').focus();
-  });
-  document.getElementById('inputNama').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') doLogin();
   });
-
+  
   if (!navigator.onLine) showOfflineBanner();
 
   deteksiExamBrowser();
