@@ -1370,11 +1370,10 @@ window.addEventListener('offline', function() { showOfflineBanner(); });
 // LOGIN
 function doLogin() {
   var noTes = document.getElementById('inputNoTes').value.trim().toUpperCase();
-  var nama = document.getElementById('inputNama').value.trim();
   var msgEl = document.getElementById('loginMessage');
 
-  if (!noTes || !nama) {
-    msgEl.textContent = '❌ Nomor Tes dan Nama wajib diisi!';
+  if (!noTes) {
+    msgEl.textContent = '❌ Nomor Tes wajib diisi!';
     msgEl.style.display = 'block';
     return;
   }
@@ -1447,7 +1446,7 @@ function doLogin() {
     document.getElementById('btnLogin').textContent = '🚀 Masuk';
     msgEl.textContent = '❌ Error: ' + err;
     msgEl.style.display = 'block';
-  }, noTes, kelasUjian, deviceId); // ✅ KIRIM 3 PARAMETER
+   }, noTes, kelasUjian, deviceId); // ✅ KIRIM 3 PARAMETER
 }
 
 function doLogout() {
