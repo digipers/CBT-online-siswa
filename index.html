@@ -1155,6 +1155,7 @@ var waktuMulaiUjian = null;
 var waktuSelesaiUjian = null;
 var countdownInterval = null;
 var cekWaktuSelesaiInterval = null;
+var isSubmitting = false; // ✅ TAMBAHAN: flag untuk cegah double submit
 
 // ============================================================
 // GET URL PARAMS
@@ -1302,14 +1303,30 @@ function getStorageKey(suffix) {
 function saveLocal() {
   var key = getStorageKey('jawaban');
   if (!key) return;
+  
+  var dataToSave = JSON.stringify({
+    jawaban: jawabanSiswa,
+    currentIndex: currentIndex,
+    waktuMulai: waktuMulai,
+    savedAt: new Date().toISOString()
+  });
+  
   try {
-    localStorage.setItem(key, JSON.stringify({
-      jawaban: jawabanSiswa,
-      currentIndex: currentIndex,
-      waktuMulai: waktuMulai,
-      savedAt: new Date().toISOString()
-    }));
-  } catch (e) { console.warn('Local storage gagal:', e); }
+    localStorage.setItem(key, dataToSave);
+  } catch (e) {
+    console.warn('Local storage gagal:', e);
+    // ✅ FIX: bersihkan cache lama kalau penuh
+    if (e.name === 'QuotaExceededError' || e.code === 22) {
+      try {
+        Object.keys(localStorage).forEach(function(k) {
+          if (k.indexOf('soal_cache_') === 0) localStorage.removeItem(k);
+        });
+        localStorage.setItem(key, dataToSave);
+      } catch (e2) {
+        console.error('Masih gagal setelah cleanup:', e2);
+      }
+    }
+  }
 }
 
 function loadLocal() {
@@ -1352,16 +1369,34 @@ window.addEventListener('offline', function() { showOfflineBanner(); });
 // ============================================================
 // LOGIN
 function doLogin() {
-  var noTes = document.getElementById('inputNoTes').value.trim();
+  var noTes = document.getElementById('inputNoTes').value.trim().toUpperCase();
+  var nama = document.getElementById('inputNama').value.trim();
   var msgEl = document.getElementById('loginMessage');
 
-  if (!noTes) {
-    msgEl.textContent = '❌ Nomor Tes wajib diisi!';
+  if (!noTes || !nama) {
+    msgEl.textContent = '❌ Nomor Tes dan Nama wajib diisi!';
     msgEl.style.display = 'block';
     return;
   }
+  
+  // ✅ TAMBAHAN: validasi format nomor tes
+  if (!/^[A-Z0-9]+$/.test(noTes)) {
+    msgEl.textContent = '❌ Nomor Tes hanya boleh huruf dan angka (tanpa spasi/simbol).';
+    msgEl.style.display = 'block';
+    return;
+  }
+  
+  if (noTes.length < 3 || noTes.length > 20) {
+    msgEl.textContent = '❌ Nomor Tes harus 3-20 karakter.';
+    msgEl.style.display = 'block';
+    return;
+  }
+  
+  // ✅ Normalisasi input sebelum kirim
+  document.getElementById('inputNoTes').value = noTes;
 
   msgEl.style.display = 'none';
+  
   document.getElementById('btnLogin').disabled = true;
   document.getElementById('btnLogin').textContent = '⏳ Memeriksa...';
 
@@ -1896,9 +1931,17 @@ function formatWaktuLengkap(date) {
 // MULAI RENDER
 // ============================================================
 function mulaiRender() {
-  if (!waktuMulai) waktuMulai = new Date().toISOString();
-
+  // ✅ FIX: pastikan waktuMulai konsisten (ambil dari localStorage kalau ada)
+  if (!waktuMulai) {
+    var localCheck = loadLocal();
+    if (localCheck && localCheck.waktuMulai) {
+      waktuMulai = localCheck.waktuMulai;
+    } else {
+      waktuMulai = new Date().toISOString();
+    }
+  }
   var localData = loadLocal();
+  
   if (localData && localData.currentIndex !== undefined && currentIndex === 0) {
     currentIndex = localData.currentIndex;
   }
@@ -2207,13 +2250,25 @@ function lompatKe(index) {
 // ============================================================
 function startTimer() {
   if (timerInterval) clearInterval(timerInterval);
-  timeLeft = durasiUjian * 60;
+  
+  // ✅ FIX: hitung sisa waktu berdasarkan waktu mulai yang tersimpan
+  var waktuMulaiMs = waktuMulai ? new Date(waktuMulai).getTime() : Date.now();
+  var elapsed = Math.floor((Date.now() - waktuMulaiMs) / 1000);
+  var totalDetik = durasiUjian * 60;
+  
+  timeLeft = Math.max(0, totalDetik - elapsed);
+  
+  // ✅ Kalau waktu sudah habis, langsung submit
+  if (timeLeft <= 0) {
+    autoSubmit();
+    return;
+  }
+  
   updateTimerDisplay();
 
   timerInterval = setInterval(function() {
     timeLeft--;
     updateTimerDisplay();
-
     if (timeLeft <= 300 && !warningShown) {
       warningShown = true;
       showModalInfo('⏰ Waktu Tersisa 5 Menit', 'Segera selesaikan ujian Anda.', 'OK');
@@ -2279,11 +2334,18 @@ function autoSubmit() {
 // SUBMIT JAWABAN
 // ============================================================
 function submitJawaban(isAuto) {
-  if (sudahSubmit) return;
-  sudahSubmit = true;
+  // ✅ FIX: cek dua flag untuk cegah double submit
+  if (sudahSubmit || isSubmitting) return;
+  isSubmitting = true;
   
-   if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; }
-  if (autoSaveServerInterval) { clearInterval(autoSaveServerInterval); autoSaveServerInterval = null; }
+  // ✅ Disable tombol kirim
+  var btnKirim = document.querySelector('.btn-success');
+  if (btnKirim) {
+    btnKirim.disabled = true;
+    btnKirim.textContent = '⏳ Mengirim...';
+  }
+  
+  if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; }
   if (timerInterval) clearInterval(timerInterval);
   if (cekWaktuSelesaiInterval) { clearInterval(cekWaktuSelesaiInterval); cekWaktuSelesaiInterval = null; }
   if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }  // ✅ TAMBAH INI
@@ -2302,15 +2364,23 @@ function submitJawaban(isAuto) {
   showModalInfo('⏳ Mengirim Jawaban', 'Mohon tunggu, sedang mengirim ke server...', '⏳');
 
   callServer('simpanJawaban', function(result) {
-    console.log('✅ Response:', result);
+    console.log('✅ Response dari server:', result);
     closeModal();
     
     if (result && result.success) {
-      console.log('✅ Tersimpan! Nilai:', result.nilai);
+      sudahSubmit = true; // ✅ Set di sini setelah server konfirmasi
+      isSubmitting = false;
+      console.log('✅ Jawaban tersimpan di Spreadsheet! Nilai:', result.nilai);
       clearLocal();
       showHasil(result.nilai || 0);
     } else {
       sudahSubmit = false;
+      isSubmitting = false;
+      // ✅ Re-enable tombol
+      if (btnKirim) {
+        btnKirim.disabled = false;
+        btnKirim.textContent = '📤 Kirim Jawaban';
+      }
       showModalInfo('❌ Gagal Mengirim',
         (result ? result.message : 'Coba lagi.'),
         'OK');
@@ -2319,6 +2389,12 @@ function submitJawaban(isAuto) {
     console.error('❌ Gagal kirim:', err);
     closeModal();
     sudahSubmit = false;
+    isSubmitting = false;
+    // ✅ Re-enable tombol
+    if (btnKirim) {
+      btnKirim.disabled = false;
+      btnKirim.textContent = '📤 Kirim Jawaban';
+    }
     showModalInfo('⚠️ Koneksi Bermasalah',
       'Jawaban gagal dikirim. Periksa koneksi internet.\n\nJawaban Anda tersimpan di HP. Klik OK untuk coba lagi.',
       'Coba Lagi',
@@ -2445,7 +2521,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   deteksiExamBrowser();
 
-  window.addEventListener('beforeunload', function() { saveLocal(); });
+   window.addEventListener('beforeunload', function(e) { 
+    saveLocal(); 
+    
+    // ✅ TAMBAHAN: konfirmasi jika sedang ujian dan belum submit
+    if (document.getElementById('pageUjian').classList.contains('active') && !sudahSubmit) {
+      e.preventDefault();
+      e.returnValue = '⚠️ Anda sedang dalam ujian! Yakin ingin keluar? Jawaban Anda akan hilang.';
+      return e.returnValue;
+    }
+  });
 
   document.addEventListener('keydown', function(e) {
     if (!document.getElementById('pageUjian').classList.contains('active')) return;
